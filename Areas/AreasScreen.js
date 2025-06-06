@@ -2,16 +2,11 @@ import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons, Entypo } from '@expo/vector-icons';
-
-const areas = [
-  { id: '1', name: 'Produção', totalAssets: 15, activeAssets: 12, registeredItems: 10 },
-  { id: '2', name: 'Classificação', totalAssets: 8, activeAssets: 10, registeredItems: 6 },
-  { id: '3', name: 'Setor 2', totalAssets: 12, activeAssets: 10, registeredItems: 9 },
-  { id: '4', name: 'Setor 3', totalAssets: 8, activeAssets: 4, registeredItems: 4 },
-];
+import { useSector } from './SectorContext';
 
 export default function Areas() {
   const navigation = useNavigation();
+  const { sectors } = useSector();
 
   const handleAreaClick = (areaName) => {
     navigation.navigate('AreaDetails', { areaName: areaName.toLowerCase() });
@@ -44,21 +39,18 @@ export default function Areas() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
         <TouchableOpacity style={styles.addButton} onPress={handleAddSector}>
           <MaterialIcons name="add" size={20} color="white" />
           <Text style={styles.addButtonText}>Adicionar setor</Text>
         </TouchableOpacity>
-      </View>
 
-      <FlatList
-        data={areas}
+
+    <FlatList data={sectors}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        numColumns={2}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+        numColumns={1}
+        contentContainerStyle={{paddingBottom: 20}} 
+    />
     </View>
   );
 }
@@ -77,3 +69,4 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#001F54', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   buttonText: { color: 'white', fontWeight: 'bold' },
 });
+
