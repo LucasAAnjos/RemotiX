@@ -15,10 +15,10 @@ export default function AreaAssets() {
 
   const activeMotors = motors.filter(m => m.active).length;
 
-  const handleMotorClick = (motorName) => {
-    navigation.navigate('MotorDetails', {
+  const handleMotorClick = (equipamentName) => {
+    navigation.navigate('EquipamentDetail', {
       areaName,
-      motorName: motorName.toLowerCase().replace(' ', '-'),
+      equipamentName: equipamentName.toLowerCase().replace(' ', '-'),
     });
   };
 
@@ -33,7 +33,7 @@ export default function AreaAssets() {
           <MaterialCommunityIcons name="Equipamento" size={24} color="#fff" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.motorName}>{item.name}</Text>
+          <Text style={styles.equipamentName}>{item.name}</Text>
           <Text style={styles.grayText}>Série: {item.serialNumber}</Text>
           <Text style={[styles.statusText, { color: item.active ? '#00C853' : '#D50000' }]}>
             {item.active ? 'Ativo' : 'Inativo'}
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 13, fontWeight: 'bold' },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, marginBottom: 16, flex: 1, marginHorizontal: 4 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  motorName: { fontWeight: 'bold', fontSize: 14, color: '#001F54' },
+  equipamentName: { fontWeight: 'bold', fontSize: 14, color: '#001F54' },
   iconBox: { width: 40, height: 40, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   button: { marginTop: 12, backgroundColor: '#001F54', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   buttonText: { color: 'white', fontWeight: 'bold' },

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function AddSector() {
+export default function AddEquipament() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Tela para adicionar setor</Text>
