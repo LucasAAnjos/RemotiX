@@ -16,8 +16,9 @@
     "lucide-react-native": "^0.513.0",
     "react": "19.0.0",
     "react-native": "0.79.3",
-    "react-navigation": "^5.0.0",
-    "react-native-svg": "15.11.2"
+    "react-native-floating-action": "^1.22.0",
+    "react-native-svg": "15.11.2",
+    "react-navigation": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
