@@ -10,10 +10,15 @@ import AreaDetails from './AreaDetails/AreaDetails';
 import AddSector from './Areas/AddSector';
 import AddEquipament from './AreaDetails/AddEquipament';
 import EquipamentDetail from './Equipament/Equipament';
+import { firebaseApp } from './services/firebaseConfig';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+
+  console.log(firebaseApp.options.projectId);
+  
+
   return (
     <AuthProvider>
       <NavigationContainer>

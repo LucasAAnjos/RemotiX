@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
+
 import {
   View,
   Text,
@@ -11,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../ValidaçõesTeste/AuthContext';
 import { validateInput } from '../ValidaçõesTeste/ValidateCaracter';
 import { sanitizeInput } from '../ValidaçõesTeste/ValidateCaracter';
+import { auth } from '../services/firebaseConfig';
 
 const LoginForm = () => {
   const navigation = useNavigation();
@@ -21,6 +24,27 @@ const LoginForm = () => {
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
 
+  const initFirebaseAuth = () => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/auth.user
+        const uid = user.uid;
+        console.log("Usuário logado", uid);
+        
+        // ...
+      } else {
+        // User is signed out
+        // ...
+      }
+    });
+  }
+
+  useEffect(()=>{
+    initFirebaseAuth()
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated) {
       navigation.reset({
@@ -30,45 +54,55 @@ const LoginForm = () => {
     }
   }, [isAuthenticated]);
 
-const validateForm = () => {
-  const errors = {};
+  const validateForm = () => {
+    const errors = {};
 
-  if (!username.trim()) {
-    errors.username = 'Usuário é obrigatório';
-  } else if (!validateInput.username(username)) {
-    errors.username = 'Usuário deve ter pelo menos 3 caracteres e conter apenas letras, números e _';
-  }
-
-  if (!password.trim()) {
-    errors.password = 'Senha é obrigatória';
-  } else if (!validateInput.password(password)) {
-    errors.password = 'Senha deve ter pelo menos 6 caracteres';
-  }
-
-  setValidationErrors(errors);
-  return Object.keys(errors).length === 0;
-};
-
-const handleLogin = async () => {
-  setError('');
-  if (!validateForm()) return;
-
-  setIsLoading(true);
-
-  try {
-    const sanitizedUsername = sanitizeInput(username);
-    const success = await login(sanitizedUsername, password);
-
-    if (!success) {
-      setError('Usuário ou senha inválidos');
+    if (!username.trim()) {
+      errors.username = 'Usuário é obrigatório';
+    } else if (!validateInput.username(username)) {
+      errors.username = 'Usuário deve ter pelo menos 3 caracteres e conter apenas letras, números e _';
     }
-  } catch (err) {
-    setError('Erro interno do servidor. Tente novamente.');
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    if (!password.trim()) {
+      errors.password = 'Senha é obrigatória';
+    } else if (!validateInput.password(password)) {
+      errors.password = 'Senha deve ter pelo menos 6 caracteres';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // const handleLogin = async () => {
+  //   setError('');
+  //   if (!validateForm()) return;
+
+  //   setIsLoading(true);
+
+  //   try {
+  //     const sanitizedUsername = sanitizeInput(username);
+  //     const success = await login(sanitizedUsername, password);
+
+  //     if (!success) {
+  //       setError('Usuário ou senha inválidos');
+  //     }
+  //   } catch (err) {
+  //     setError('Erro interno do servidor. Tente novamente.');
+  //     console.error(err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, "lucas.adrianjos@gmail.com", "teste123");
+      //Alert.alert('Login realizado', 'Bem-vindo de volta!');
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Erro no login', error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
