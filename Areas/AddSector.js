@@ -20,7 +20,6 @@ export default function AddSector() {
       activeAssets: 0,
       registeredItems: 0,
     });
-
     navigation.goBack();
   };
 
