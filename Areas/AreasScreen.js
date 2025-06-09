@@ -48,24 +48,39 @@ export default function Areas() {
           numColumns={1}
           contentContainerStyle={{paddingBottom: 20}} />
 
-      <FloatingAction
-        actions={actions}
-        color="#00C853"
-        distanceToEdge={16}
-        overlayColor="rgba(0,0,0,0.4)"
-        floatingActionButtonSize={56}
-        position="right"
-        onPressItem={(name) => {
-          if (name === 'bt_add_sector') {
-            handleAddSector();
-          }
-        }}
-      />
+      <View style={styles.fabContainer}>
+        <TouchableOpacity style={styles.fabBox} onPress={handleAddSector}>
+          <Text style={styles.fabText}>Adicionar Setor</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  fabBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00C853',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    elevation: 5,
+  },
+  fabText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   container: { flex: 1, backgroundColor: '#F0F4F8', padding: 16 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#001F54' },
