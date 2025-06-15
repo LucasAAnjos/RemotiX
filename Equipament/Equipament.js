@@ -37,27 +37,28 @@ const EquipamentDetail = () => {
   ];
 
   const handleStartMaintenance = () => {
-    if (!user) {
-      navigation.navigate('Login');
-      return;
-    }
+    // if (!user) {
+    //   navigation.navigate('Login');
+    //   return;
+    // }
 
     try {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('pt-BR');
-      const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      // const now = new Date();
+      // const dateStr = now.toLocaleDateString('pt-BR');
+      // const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-      const newMaintenanceItem = {
-        ticketNumber: `#MT-${String(Date.now()).slice(-3)}`,
-        description: '',
-        responsible: user.username,
-        function: user.role,
-        date: dateStr,
-        time: timeStr,
-      };
+      // const newMaintenanceItem = {
+      //   ticketNumber: `#MT-${String(Date.now()).slice(-3)}`,
+      //   description: '',
+      //   responsible: user.username,
+      //   function: user.role,
+      //   date: dateStr,
+      //   time: timeStr,
+      // };
 
-      addMaintenanceRecord(newMaintenanceItem);
-      navigation.navigate('Maintenance', { areaName, EquipamentName });
+      // addMaintenanceRecord(newMaintenanceItem);
+      //navigation.navigate('Maintenance', { areaName, EquipamentName });
+      navigation.navigate('MotorControl', { areaName, EquipamentName });
     } catch (error) {
       Alert.alert('Erro', 'Erro ao iniciar manutenção.');
     }

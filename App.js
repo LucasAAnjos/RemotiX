@@ -10,6 +10,7 @@ import AreaDetails from './AreaDetails/AreaDetails';
 import AddSector from './Areas/AddSector';
 import AddEquipament from './AreaDetails/AddEquipament';
 import EquipamentDetail from './Equipament/Equipament';
+import MotorControl from './Equipament/MotorControl';
 import { firebaseApp } from './services/firebaseConfig';
 
 const Stack = createNativeStackNavigator();
@@ -29,6 +30,7 @@ export default function App() {
           <Stack.Screen name="AddSector" component={AddSector} options={{ title: 'Adicionar Setor' }} />
           <Stack.Screen name="AddEquipament" component={AddEquipament} options={{ title: 'AdicionarEquipamentos' }} />
           <Stack.Screen name="EquipamentDetail" component={EquipamentDetail} options={{title: 'Adicionar Manutenção'}} />
+          <Stack.Screen name="MotorControl" component={MotorControl} options={{title: 'Controle'}} />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
