@@ -1,29 +1,67 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Alert
+  Alert,
+  RefreshControl,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons, Entypo } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { MaterialIcons, Entypo, Feather } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
-import { auth } from '../services/firebaseConfig';
+import { fetchAreasFromFirestore } from '../services/firestoreService';
 
-const areas = [
-  { id: '1', name: 'Produção', totalAssets: 15, activeAssets: 12, registeredItems: 10 },
-  { id: '2', name: 'Classificação', totalAssets: 8, activeAssets: 10, registeredItems: 6 },
-  { id: '3', name: 'Setor 2', totalAssets: 12, activeAssets: 10, registeredItems: 9 },
-  { id: '4', name: 'Setor 3', totalAssets: 8, activeAssets: 4, registeredItems: 4 },
-];
+import { auth } from '../services/firebaseConfig';
+import {
+  getPlantId,
+  saveAreasToStorage,
+  getAreasFromStorage,
+} from '../src/storage/localStorage';
 
 export default function Areas() {
   const navigation = useNavigation();
+  const [plantId, setPlantId] = useState(null);
+  const [areas, setAreas] = useState([]);
+  const [isOnline, setIsOnline] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleAreaClick = (areaName) => {
-    navigation.navigate('AreaDetails', { areaName: areaName.toLowerCase() });
+  const fetchData = async (forceOnline = false) => {
+    const id = await getPlantId();
+    setPlantId(id);
+
+    if (!id) return;
+
+    try {
+      const loadedAreas = await fetchAreasFromFirestore(id);
+      setAreas(loadedAreas);
+      await saveAreasToStorage(loadedAreas);
+      setIsOnline(true);
+    } catch (err) {
+      console.warn('Sem conexão. Carregando cache...');
+      if (!forceOnline) {
+        const cached = await getAreasFromStorage();
+        setAreas(cached);
+        setIsOnline(false);
+      }
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchData(true);
+    setRefreshing(false);
+  };
+
+  const handleAreaClick = (area) => {
+    navigation.navigate('AreaDetails', { areaId: area.id, areaName: area.name });
   };
 
   const handleAddSector = () => {
@@ -31,58 +69,60 @@ export default function Areas() {
   };
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (error) {
-      console.error('Erro ao deslogar:', error);
-      Alert.alert('Erro', 'Não foi possível sair. Tente novamente.');
-    }
-  };
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
-          <MaterialIcons name="logout" size={24} color="#fff" />
-        </TouchableOpacity>
-      ),
-      headerStyle: { backgroundColor: '#001F54' },
-      headerTintColor: '#fff',
-      headerTitleStyle: { fontWeight: 'bold' },
-      title: 'Áreas',
+    await signOut(auth);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
     });
-  }, [navigation]);
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.areaName}>{item.name}</Text>
-          <Text style={styles.textGray}>{item.totalAssets} ativos totais</Text>
-          <Text style={styles.textGreen}>{item.activeAssets} ativos</Text>
-          <Text style={styles.textGray}>{item.registeredItems} itens cadastrados</Text>
+          <Text style={styles.textGray}>{item.totalAssets ?? 0} ativos totais</Text>
+          <Text style={styles.textGreen}>{item.activeAssets ?? 0} ativos</Text>
+          <Text style={styles.textGray}>{item.registeredItems ?? 0} itens cadastrados</Text>
         </View>
-        <TouchableOpacity onPress={() => ('Excluir Setor')}>
+        <TouchableOpacity onPress={() => Alert.alert('Ação', 'Excluir Setor')}>
           <Entypo name="dots-three-vertical" size={20} color="gray" />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={() => handleAreaClick(item.name)}>
+      <TouchableOpacity style={styles.button} onPress={() => handleAreaClick(item)}>
         <Text style={styles.buttonText}>Acessar Área</Text>
       </TouchableOpacity>
     </View>
   );
 
-  return (
+return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddSector}>
-          <MaterialIcons name="add" size={20} color="white" />
-          <Text style={styles.addButtonText}>Adicionar setor</Text>
+
+      <View style={styles.topBar}>
+        <Text style={styles.title}>Áreas</Text>
+
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutTopButton}>
+          <Feather name="log-out" size={22} color="#001F54" />
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.header}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddSector}>
+            <MaterialIcons name="add" size={20} color="white" />
+            <Text style={styles.addButtonText}>Adicionar setor</Text>
+          </TouchableOpacity>
+
+          <Text style={isOnline ? styles.syncStatusOnline : styles.syncStatusOffline}>
+            {isOnline ? '🟢 Dados online' : '🟡 Dados do cache'}
+          </Text>
+        </View>
+
+        <View style={{ marginTop: 10, alignItems: 'flex-start' }}>
+          <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+            <Feather name="refresh-ccw" size={20} color="#001F54" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -92,6 +132,9 @@ export default function Areas() {
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
         contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       />
     </View>
   );
@@ -99,14 +142,116 @@ export default function Areas() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F4F8', padding: 16 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  addButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#00C853', padding: 10, borderRadius: 8 },
-  addButtonText: { color: 'white', marginLeft: 6, fontWeight: 'bold' },
-  card: { backgroundColor: 'white', borderRadius: 8, padding: 16, marginBottom: 16, flex: 1, marginHorizontal: 4 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  areaName: { fontWeight: '600', fontSize: 16, color: '#001F54' },
-  textGray: { fontSize: 12, color: 'gray' },
-  textGreen: { fontSize: 12, color: '#00C853', fontWeight: '600' },
-  button: { backgroundColor: '#001F54', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: 'white', fontWeight: 'bold' },
+
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#001F54',
+  },
+
+  logoutTopButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#001F54',
+    borderRadius: 50,
+    padding: 8,
+  },
+
+  header: {
+    marginBottom: 16,
+  },
+
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00C853',
+    padding: 10,
+    borderRadius: 8,
+  },
+
+  addButtonText: {
+    color: 'white',
+    marginLeft: 6,
+    fontWeight: 'bold',
+  },
+
+  syncStatusOnline: {
+    fontSize: 12,
+    color: '#00C853',
+    fontWeight: '600',
+  },
+
+  syncStatusOffline: {
+    fontSize: 12,
+    color: '#d4a100',
+    fontWeight: '600',
+  },
+
+  refreshButton: {
+    marginTop: 10,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#001F54',
+    borderRadius: 50,
+    padding: 8,
+    alignSelf: 'flex-start',
+  },
+
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+
+  areaName: {
+    fontWeight: '600',
+    fontSize: 16,
+    color: '#001F54',
+  },
+
+  textGray: {
+    fontSize: 12,
+    color: 'gray',
+  },
+
+  textGreen: {
+    fontSize: 12,
+    color: '#00C853',
+    fontWeight: '600',
+  },
+
+  button: {
+    backgroundColor: '#001F54',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });

@@ -1,16 +1,29 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Plus, ArrowLeft } from 'lucide-react-native';
+import { Plus, Paperclip } from 'lucide-react-native'; // Paperclip é o ícone de anexar
 import { useAuth } from '../ValidaçõesTeste/AuthContext';
 import { useMaintenanceData } from './UseMaintenance';
 
 const EquipamentDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { areaName, EquipamentName } = route.params || {};
+  const { areaId, equipamentName, equipamentId } = route.params || {};
   const { user } = useAuth();
   const { addMaintenanceRecord } = useMaintenanceData();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() => navigation.navigate('EquipamentFiles', { areaId, equipamentName, equipamentId })}
+        >
+          <Paperclip size={24} color="#001F54" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, equipamentName]);
 
   const maintenanceHistory = [
     {
@@ -37,38 +50,19 @@ const EquipamentDetail = () => {
   ];
 
   const handleStartMaintenance = () => {
-    // if (!user) {
-    //   navigation.navigate('Login');
-    //   return;
-    // }
-
     try {
-      // const now = new Date();
-      // const dateStr = now.toLocaleDateString('pt-BR');
-      // const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-      // const newMaintenanceItem = {
-      //   ticketNumber: `#MT-${String(Date.now()).slice(-3)}`,
-      //   description: '',
-      //   responsible: user.username,
-      //   function: user.role,
-      //   date: dateStr,
-      //   time: timeStr,
-      // };
-
-      // addMaintenanceRecord(newMaintenanceItem);
-      //navigation.navigate('Maintenance', { areaName, EquipamentName });
-      navigation.navigate('MotorControl', { areaName, EquipamentName });
+      navigation.navigate('MotorControl', { areaId, equipamentName });
     } catch (error) {
+      console.log(error)
       Alert.alert('Erro', 'Erro ao iniciar manutenção.');
     }
   };
 
   const handleViewHistory = () => {
-    navigation.navigate('History', { areaName, EquipamentName });
+    navigation.navigate('History', { areaName, equipamentName });
   };
 
-  const formatEquipamentName = (name) => {
+  const formatequipamentName = (name) => {
     return name?.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
@@ -76,7 +70,7 @@ const EquipamentDetail = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
         <Image
-          source={{ uri: 'https://images.tcdn.com.br/img/img_prod/681801/motor_eletrico_trifasico_weg_ie3_25cv_220_380_440v_4_polos_baixa_rotacao_5715_variacao_531_1_b11fc83bd6da56ab1669cfc0c2778349.jpg'}}
+          source={{ uri: 'https://images.tcdn.com.br/img/img_prod/681801/motor_eletrico_trifasico_weg_ie3_25cv_220_380_440v_4_polos_baixa_rotacao_5715_variacao_531_1_b11fc83bd6da56ab1669cfc0c2778349.jpg' }}
           style={styles.image}
         />
 
@@ -107,23 +101,7 @@ const EquipamentDetail = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-  },
-  backButton: {
-    marginBottom: 12,
-    padding: 8,
-    alignSelf: 'flex-start',
-    backgroundColor: '#E5E7EB',
-    borderRadius: 50,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#001F54',
-    marginBottom: 16,
-  },
+  container: { padding: 16, backgroundColor: '#F9FAFB' },
   card: {
     backgroundColor: 'white',
     borderRadius: 12,

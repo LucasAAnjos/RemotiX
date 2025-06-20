@@ -11,6 +11,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../services/firebaseConfig';
+import { savePlantId } from '../src/storage/localStorage';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
 const LoginForm = () => {
   const navigation = useNavigation();
@@ -65,7 +68,11 @@ const LoginForm = () => {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-    } catch (err) {
+      const user = auth.currentUser;
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const plantId = userDoc.exists() ? userDoc.data().plantID : null;
+      await savePlantId(plantId);
+     } catch (err) {
       console.error(err);
       let message = 'Erro ao fazer login. Verifique suas credenciais.';
       if (err.code === 'auth/user-not-found') message = 'Usuário não encontrado.';

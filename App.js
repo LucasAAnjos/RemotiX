@@ -9,7 +9,8 @@ import { AuthProvider } from './ValidaçõesTeste/AuthContext';
 import AreaDetails from './AreaDetails/AreaDetails';
 import AddSector from './Areas/AddSector';
 import AddEquipament from './AreaDetails/AddEquipament';
-import EquipamentDetail from './Equipament/Equipament';
+import EquipamentDetail from './Equipament/EquipamentDetail';
+import EquipamentFiles from './Equipament/EquipamentFiles';
 import MotorControl from './Equipament/MotorControl';
 import { firebaseApp } from './services/firebaseConfig';
 
@@ -29,8 +30,9 @@ export default function App() {
           <Stack.Screen name="AreaDetails" component={AreaDetails} options={({ route }) => ({ title: capitalizeFirstLetter(route.params.areaName) })} />
           <Stack.Screen name="AddSector" component={AddSector} options={{ title: 'Adicionar Setor' }} />
           <Stack.Screen name="AddEquipament" component={AddEquipament} options={{ title: 'AdicionarEquipamentos' }} />
-          <Stack.Screen name="EquipamentDetail" component={EquipamentDetail} options={{title: 'Adicionar Manutenção'}} />
+          <Stack.Screen name="EquipamentDetail" component={EquipamentDetail} options={{title: 'Equipamento'}} />
           <Stack.Screen name="MotorControl" component={MotorControl} options={{title: 'Controle'}} />
+          <Stack.Screen name="EquipamentFiles" component={EquipamentFiles} options={{title: 'Arquivos'}} />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
