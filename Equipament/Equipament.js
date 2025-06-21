@@ -2,15 +2,15 @@ import React from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Plus, ArrowLeft } from 'lucide-react-native';
-import { useAuth } from '../ValidaçõesTeste/AuthContext';
-import { useMaintenanceData } from './UseMaintenance';
+import { useAuth } from '../ValidaçõesTeste/AuthContext'
+import StartMaintenance from '../Equipament/StartMaintenance';
+import { addMaintenanceRecord } from '../Equipament/StartMaintenance'
 
 const EquipamentDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { areaName, EquipamentName } = route.params || {};
   const { user } = useAuth();
-  const { addMaintenanceRecord } = useMaintenanceData();
 
   const maintenanceHistory = [
     {
@@ -38,7 +38,7 @@ const EquipamentDetail = () => {
 
   const handleStartMaintenance = () => {
     if (!user) {
-      navigation.navigate('Login');
+      navigation.navigate('StartMaintenance', { areaName, EquipamentName });
       return;
     }
 
@@ -57,7 +57,7 @@ const EquipamentDetail = () => {
       };
 
       addMaintenanceRecord(newMaintenanceItem);
-      navigation.navigate('Maintenance', { areaName, EquipamentName });
+      navigation.navigate('StartMaintenance', { areaName, EquipamentName });
     } catch (error) {
       Alert.alert('Erro', 'Erro ao iniciar manutenção.');
     }

@@ -11,16 +11,14 @@ import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebaseConfig';
+import { useSector } from './SectorContext';
+import { actions } from '../Utils/floatButton';
+import { FloatingAction } from 'react-native-floating-action';
 
-const areas = [
-  { id: '1', name: 'Produção', totalAssets: 15, activeAssets: 12, registeredItems: 10 },
-  { id: '2', name: 'Classificação', totalAssets: 8, activeAssets: 10, registeredItems: 6 },
-  { id: '3', name: 'Setor 2', totalAssets: 12, activeAssets: 10, registeredItems: 9 },
-  { id: '4', name: 'Setor 3', totalAssets: 8, activeAssets: 4, registeredItems: 4 },
-];
 
 export default function Areas() {
   const navigation = useNavigation();
+  const { sectors } = useSector();
 
   const handleAreaClick = (areaName) => {
     navigation.navigate('AreaDetails', { areaName: areaName.toLowerCase() });
@@ -78,29 +76,49 @@ export default function Areas() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddSector}>
-          <MaterialIcons name="add" size={20} color="white" />
-          <Text style={styles.addButtonText}>Adicionar setor</Text>
+      <FlatList data={sectors}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          numColumns={1}
+          contentContainerStyle={{paddingBottom: 20}} />
+
+      <View style={styles.fabContainer}>
+        <TouchableOpacity style={styles.fabBox} onPress={handleAddSector}>
+          <Text style={styles.fabText}>Adicionar Setor</Text>
         </TouchableOpacity>
       </View>
-
-      <FlatList
-        data={areas}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        numColumns={2}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  fabBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00C853',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    elevation: 5,
+  },
+  fabText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   container: { flex: 1, backgroundColor: '#F0F4F8', padding: 16 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   addButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#00C853', padding: 10, borderRadius: 8 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#001F54' },
   addButtonText: { color: 'white', marginLeft: 6, fontWeight: 'bold' },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, marginBottom: 16, flex: 1, marginHorizontal: 4 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
@@ -110,3 +128,4 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#001F54', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   buttonText: { color: 'white', fontWeight: 'bold' },
 });
+
