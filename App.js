@@ -11,6 +11,8 @@ import AreaDetails from './AreaDetails/AreaDetails';
 import AddSector from './Areas/AddSector';
 import AddEquipament from './AreaDetails/AddEquipament';
 import EquipamentDetail from './Equipament/Equipament';
+import StartMaintenance from './Equipament/StartMaintenance';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +28,7 @@ export default function App() {
             <Stack.Screen name="AddSector" component={AddSector} options={{ title: 'Adicionar Setor' }} />
             <Stack.Screen name="AddEquipament" component={AddEquipament} options={{ title: 'Adicionar Equipamentos' }} />
             <Stack.Screen name="EquipamentDetail" component={EquipamentDetail} options={{ title: 'Adicionar Manutenção' }} />
+            <Stack.Screen name="StartMaintenance" component={StartMaintenance} options={{ title: 'Tela de Manutenção' }} />
           </Stack.Navigator>
         </NavigationContainer>
       </SectorProvider>

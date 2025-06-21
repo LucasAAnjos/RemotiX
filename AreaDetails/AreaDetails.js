@@ -13,7 +13,16 @@ export default function AreaAssets() {
 
   useEffect(() => {
     if (isFocused && route.params?.newEquipament) {
-      setEquipaments((prev) => [...prev, route.params.newEquipament]);
+      setEquipaments((prev) => {
+        const exists = prev.some(eq => eq.id === route.params.newEquipament.id);
+        if (!exists) {
+          return [...prev, route.params.newEquipament];
+        }
+        return prev;
+      });
+
+      // Limpa o parâmetro para evitar repetição
+      navigation.setParams({ newEquipament: null });
     }
   }, [isFocused, route.params?.newEquipament]);
 
