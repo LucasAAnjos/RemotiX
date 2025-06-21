@@ -18,7 +18,6 @@
     "expo-file-system": "^18.1.10",
     "expo-intent-launcher": "^12.1.5",
     "expo-media-library": "^17.1.7",
-    "expo-permissions": "^14.4.0",
     "expo-sharing": "^13.1.5",
     "expo-status-bar": "~2.2.3",
     "firebase": "^11.9.0",

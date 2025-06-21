@@ -20,13 +20,19 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.lucasaanjos.remotix"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "permissions": [
-           "android.permission.READ_EXTERNAL_STORAGE"
-         ]
+      
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "58165841-ab53-4bb3-ba16-5dc15c46ac66"
+      }
+    }
   }
 }

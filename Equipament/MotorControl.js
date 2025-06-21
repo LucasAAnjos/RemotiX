@@ -1,11 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Button, Image, StyleSheet, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+
+
 
 export default function MotorControlScreen() {
   const ws = useRef(null);
   const route = useRoute();
-  const { equipamentName } = route.params || {};
+  const navigation = useNavigation();
+  const { equipamentName, equipamentId, areaId } = route.params || {};
 
   const [status, setStatus] = useState(0); 
   const [bits, setBits] = useState({ retroaviso: false, alarme1: false, alarme2: false });
@@ -43,7 +47,7 @@ export default function MotorControlScreen() {
 
       ws.current.send(JSON.stringify({
         type: 'setCommand',
-        tag: equipamentName, // aqui você envia a tag associada ao equipamento
+        tag: equipamentName, 
         command,
       }));
     } else {
@@ -76,6 +80,12 @@ export default function MotorControlScreen() {
         <Button title="Ligar" onPress={() => sendCommand(1)} />
         <Button title="Desligar" onPress={() => sendCommand(2)} />
       </View>
+
+      <Button
+        title="Finalizar Manutenção"
+        color="#28a745"
+        onPress={() => navigation.navigate('MaintenanceRegisterScreen', { equipamentId, areaId })}
+      />
     </View>
   );
 }

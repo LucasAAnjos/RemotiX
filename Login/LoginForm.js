@@ -14,6 +14,8 @@ import { auth } from '../services/firebaseConfig';
 import { savePlantId } from '../src/storage/localStorage';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const LoginForm = () => {
   const navigation = useNavigation();
@@ -72,6 +74,11 @@ const LoginForm = () => {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const plantId = userDoc.exists() ? userDoc.data().plantID : null;
       await savePlantId(plantId);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        await AsyncStorage.setItem('userRole', userData.role || '');
+        await AsyncStorage.setItem('userName', userData.name || '');
+      }
      } catch (err) {
       console.error(err);
       let message = 'Erro ao fazer login. Verifique suas credenciais.';

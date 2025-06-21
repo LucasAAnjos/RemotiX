@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   RefreshControl,
+  BackHandler, 
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
@@ -21,7 +22,7 @@ import {
 export default function AreaAssets() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { areaId, areaName } = route.params;
+  const { areaId } = route.params;
 
   const [equipment, setEquipment] = useState([]);
   const [plantId, setPlantId] = useState(null);
@@ -36,7 +37,7 @@ export default function AreaAssets() {
     try {
       const equipList = await fetchEquipamentsFromFirestore(id, areaId);
       setEquipment(equipList);
-      await saveEquipmentToStorage(areaId, equipList); // salva por área
+      await saveEquipmentToStorage(areaId, equipList); 
       setIsOnline(true);
     } catch (error) {
       console.warn('Sem conexão. Carregando cache...');
@@ -50,6 +51,15 @@ export default function AreaAssets() {
 
   useFocusEffect(
     useCallback(() => {
+      const onBackPress = () => {
+        navigation.navigate('Áreas', {        
+        });
+        return true; 
+      };
+      
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+
       fetchData();
     }, [areaId])
   );

@@ -1,16 +1,19 @@
-import React, { useLayoutEffect } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { Plus, Paperclip } from 'lucide-react-native'; // Paperclip é o ícone de anexar
+import React, { useLayoutEffect, useState } from 'react';
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Alert, BackHandler } from 'react-native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { Plus, Paperclip } from 'lucide-react-native';
 import { useAuth } from '../ValidaçõesTeste/AuthContext';
-import { useMaintenanceData } from './UseMaintenance';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { getPlantId } from '../src/storage/localStorage';
+import { db } from '../services/firebaseConfig';
 
 const EquipamentDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { areaId, equipamentName, equipamentId } = route.params || {};
   const { user } = useAuth();
-  const { addMaintenanceRecord } = useMaintenanceData();
+
+  const [maintenanceHistory, setMaintenanceHistory] = useState([]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -25,44 +28,73 @@ const EquipamentDetail = () => {
     });
   }, [navigation, equipamentName]);
 
-  const maintenanceHistory = [
-    {
-      id: 1,
-      date: '15/11/2024',
-      description: 'Troca de rolamentos',
-      responsible: 'João Silva',
-      function: 'Técnico Mecânico'
-    },
-    {
-      id: 2,
-      date: '10/11/2024',
-      description: 'Lubrificação geral',
-      responsible: 'Maria Santos',
-      function: 'Técnica Industrial'
-    },
-    {
-      id: 3,
-      date: '05/11/2024',
-      description: 'Verificação elétrica',
-      responsible: 'Pedro Costa',
-      function: 'Eletricista'
-    }
-  ];
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+
+      const onBackPress = () => {
+        navigation.navigate('AreaDetails', {
+          areaId, 
+        
+        });
+        return true; 
+      };
+
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      async function fetchMaintenance() {
+        try {
+          const plantId = await getPlantId();
+          const ref = collection(
+            db,
+            'plants',
+            String(plantId),
+            'areas',
+            String(areaId),
+            'equipaments',
+            String(equipamentId),
+            'maintenance'
+          );
+
+          const q = query(ref, orderBy('date', 'desc'), limit(3));
+          const snapshot = await getDocs(q);
+
+          if (!isActive) return;
+
+          const data = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+
+          setMaintenanceHistory(data);
+        } catch (err) {
+          console.error('Erro ao buscar histórico:', err);
+        }
+      }
+
+      fetchMaintenance();
+
+      return () => {
+        isActive = false;
+        backHandler.remove();
+      };
+    }, [areaId, equipamentId, navigation])
+  );
 
   const handleStartMaintenance = () => {
     try {
-      navigation.navigate('MotorControl', { areaId, equipamentName });
+      navigation.navigate('MotorControl', { areaId, equipamentName, equipamentId });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       Alert.alert('Erro', 'Erro ao iniciar manutenção.');
     }
   };
 
   const handleViewHistory = () => {
-    navigation.navigate('History', { areaName, equipamentName });
+    navigation.navigate('History', { areaId, equipamentId, equipamentName });
   };
 
-  const formatequipamentName = (name) => {
+  const formatEquipamentName = (name) => {
     return name?.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
@@ -70,7 +102,9 @@ const EquipamentDetail = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
         <Image
-          source={{ uri: 'https://images.tcdn.com.br/img/img_prod/681801/motor_eletrico_trifasico_weg_ie3_25cv_220_380_440v_4_polos_baixa_rotacao_5715_variacao_531_1_b11fc83bd6da56ab1669cfc0c2778349.jpg' }}
+          source={{
+            uri: 'https://images.tcdn.com.br/img/img_prod/681801/motor_eletrico_trifasico_weg_ie3_25cv_220_380_440v_4_polos_baixa_rotacao_5715_variacao_531_1_b11fc83bd6da56ab1669cfc0c2778349.jpg',
+          }}
           style={styles.image}
         />
 
@@ -88,13 +122,23 @@ const EquipamentDetail = () => {
           </TouchableOpacity>
         </View>
 
-        {maintenanceHistory.map((item) => (
-          <View key={item.id} style={styles.historyItem}>
-            <Text style={styles.historyDescription}>{item.description}</Text>
-            <Text style={styles.historyMeta}>{item.date}</Text>
-            <Text style={styles.historyMeta}>{item.responsible} - {item.function}</Text>
-          </View>
-        ))}
+        {maintenanceHistory.length > 0 ? (
+          maintenanceHistory.map((item) => (
+            <View key={item.id} style={styles.historyItem}>
+              <Text style={styles.historyDescription}>{item.description}</Text>
+              <Text style={styles.historyMeta}>
+                {item.date?.seconds
+                  ? new Date(item.date.seconds * 1000).toLocaleString('pt-BR')
+                  : 'Data inválida'}
+              </Text>
+              <Text style={styles.historyMeta}>
+                {item.user} - {item.role}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.historyMeta}>Nenhuma manutenção registrada.</Text>
+        )}
       </View>
     </ScrollView>
   );
