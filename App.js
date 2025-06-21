@@ -12,11 +12,16 @@ import AddSector from './Areas/AddSector';
 import AddEquipament from './AreaDetails/AddEquipament';
 import EquipamentDetail from './Equipament/Equipament';
 import StartMaintenance from './Equipament/StartMaintenance';
+import { firebaseApp } from './services/firebaseConfig';
 
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+
+  console.log(firebaseApp.options.projectId);
+  
+
   return (
     <AuthProvider>
       <SectorProvider>

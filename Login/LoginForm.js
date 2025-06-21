@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 import {
   View,
   Text,
@@ -6,69 +7,77 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../ValidaçõesTeste/AuthContext';
-import { validateInput } from '../ValidaçõesTeste/ValidateCaracter';
-import { sanitizeInput } from '../ValidaçõesTeste/ValidateCaracter';
+import { auth } from '../services/firebaseConfig';
 
 const LoginForm = () => {
   const navigation = useNavigation();
-  const { login, isAuthenticated } = useAuth();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Áreas' }],
-      });
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("Usuário logado:", user.uid);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Áreas' }],
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const isValidEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!email.trim()) {
+      errors.email = 'E-mail é obrigatório';
+    } else if (!isValidEmail(email)) {
+      errors.email = 'Formato de e-mail inválido';
     }
-  }, [isAuthenticated]);
 
-const validateForm = () => {
-  const errors = {};
-
-  if (!username.trim()) {
-    errors.username = 'Usuário é obrigatório';
-  } else if (!validateInput.username(username)) {
-    errors.username = 'Usuário deve ter pelo menos 3 caracteres e conter apenas letras, números e _';
-  }
-
-  if (!password.trim()) {
-    errors.password = 'Senha é obrigatória';
-  } else if (!validateInput.password(password)) {
-    errors.password = 'Senha deve ter pelo menos 6 caracteres';
-  }
-
-  setValidationErrors(errors);
-  return Object.keys(errors).length === 0;
-};
-
-const handleLogin = async () => {
-  setError('');
-  if (!validateForm()) return;
-
-  setIsLoading(true);
-
-  try {
-    const sanitizedUsername = sanitizeInput(username);
-    const success = await login(sanitizedUsername, password);
-
-    if (!success) {
-      setError('Usuário ou senha inválidos');
+    if (!password.trim()) {
+      errors.password = 'Senha é obrigatória';
+    } else if (password.length < 6) {
+      errors.password = 'Senha deve ter pelo menos 6 caracteres';
     }
-  } catch (err) {
-    setError('Erro interno do servidor. Tente novamente.');
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleLogin = async () => {
+    setError('');
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (err) {
+      console.error(err);
+      let message = 'Erro ao fazer login. Verifique suas credenciais.';
+      if (err.code === 'auth/user-not-found') message = 'Usuário não encontrado.';
+      else if (err.code === 'auth/wrong-password') message = 'Senha incorreta.';
+      else if (err.code === 'auth/invalid-email') message = 'Email inválido.';
+      else if (err.code === 'auth/too-many-requests') message = 'Muitas tentativas. Tente novamente mais tarde.';
+
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -79,16 +88,16 @@ const handleLogin = async () => {
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
         <TextInput
-          style={[styles.input, validationErrors.username && styles.inputError]}
-          placeholder="Usuário"
-          value={username}
-          onChangeText={setUsername}
+          style={[styles.input, validationErrors.email && styles.inputError]}
+          placeholder="E-mail"
+          value={email}
+          onChangeText={setEmail}
           editable={!isLoading}
-          maxLength={50}
+          keyboardType="email-address"
           autoCapitalize="none"
         />
-        {validationErrors.username && (
-          <Text style={styles.errorText}>{validationErrors.username}</Text>
+        {validationErrors.email && (
+          <Text style={styles.errorText}>{validationErrors.email}</Text>
         )}
 
         <TextInput
@@ -98,7 +107,6 @@ const handleLogin = async () => {
           value={password}
           onChangeText={setPassword}
           editable={!isLoading}
-          maxLength={100}
           autoCapitalize="none"
         />
         {validationErrors.password && (
