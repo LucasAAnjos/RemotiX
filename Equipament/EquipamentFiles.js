@@ -6,13 +6,20 @@ import {
   Button,
   StyleSheet,
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as MediaLibrary from 'expo-media-library';
-import { collection, addDoc, query, orderBy, getDocs } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  getDocs,
+} from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { db, storage } from '../services/firebaseConfig';
@@ -54,7 +61,7 @@ const EquipamentFiles = ({ route }) => {
       const q = query(filesRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
 
-      const fetched = querySnapshot.docs.map(doc => ({
+      const fetched = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
@@ -83,7 +90,7 @@ const EquipamentFiles = ({ route }) => {
         multiple: false,
       });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
+      if (!result.canceled && result.assets?.length > 0) {
         const file = result.assets[0];
         setLoading(true);
 
@@ -131,6 +138,23 @@ const EquipamentFiles = ({ route }) => {
     }
   };
 
+  const saveDownloadedFile = async (fileName, fileUrl, localUri) => {
+    const data = { url: fileUrl, uri: localUri };
+    await AsyncStorage.setItem(`downloadedFile:${fileName}`, JSON.stringify(data));
+  };
+
+  const getDownloadedFile = async (fileName, fileUrl) => {
+    const value = await AsyncStorage.getItem(`downloadedFile:${fileName}`);
+    if (value) {
+      const data = JSON.parse(value);
+      if (data.url === fileUrl) {
+        const fileInfo = await FileSystem.getInfoAsync(data.uri);
+        if (fileInfo.exists) return data.uri;
+      }
+    }
+    return null;
+  };
+
   const handleDownload = async (file) => {
     try {
       const { granted } = await MediaLibrary.requestPermissionsAsync();
@@ -139,18 +163,17 @@ const EquipamentFiles = ({ route }) => {
         return;
       }
 
-      const localUri = `${FileSystem.documentDirectory}${file.name}`;
-      const fileInfo = await FileSystem.getInfoAsync(localUri);
+      let localUri = await getDownloadedFile(file.name, file.url);
 
-      let finalUri = localUri;
-
-      if (!fileInfo.exists) {
+      if (!localUri) {
         setLoading(true);
-        const downloaded = await FileSystem.downloadAsync(file.url, localUri);
-        finalUri = downloaded.uri;
+        const uri = `${FileSystem.documentDirectory}${file.name}`;
+        const downloaded = await FileSystem.downloadAsync(file.url, uri);
+        localUri = downloaded.uri;
+        await saveDownloadedFile(file.name, file.url, localUri);
       }
 
-      const asset = await MediaLibrary.createAssetAsync(finalUri);
+      const asset = await MediaLibrary.createAssetAsync(localUri);
       await MediaLibrary.createAlbumAsync('Download', asset, false);
 
       IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
@@ -220,12 +243,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
-    alignSelf: 'flex-start'
+    alignSelf: 'flex-start',
   },
   downloadText: {
     color: '#fff',
-    fontWeight: '600'
-  }
+    fontWeight: '600',
+  },
 });
 
 export default EquipamentFiles;

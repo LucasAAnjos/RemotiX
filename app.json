@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "permissions": ["CAMERA", "WRITE_EXTERNAL_STORAGE"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -26,13 +27,20 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "permissions": [
-      
-    ],
     "extra": {
       "eas": {
         "projectId": "58165841-ab53-4bb3-ba16-5dc15c46ac66"
       }
-    }
+    },
+     "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ]
   }
 }

@@ -95,15 +95,20 @@ export default function Areas() {
     </View>
   );
 
-return (
+  return (
     <View style={styles.container}>
-
       <View style={styles.topBar}>
         <Text style={styles.title}>Áreas</Text>
 
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutTopButton}>
-          <Feather name="log-out" size={22} color="#001F54" />
-        </TouchableOpacity>
+        <View style={styles.topRightIcons}>
+          <TouchableOpacity onPress={() => navigation.navigate('QrScanner')} style={styles.iconButton}>
+            <Feather name="camera" size={22} color="#001F54" />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
+            <Feather name="log-out" size={22} color="#001F54" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.header}>
@@ -151,18 +156,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
 
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#001F54',
+  topRightIcons: {
+    flexDirection: 'row',
+    gap: 8,
   },
 
-  logoutTopButton: {
+  iconButton: {
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#001F54',
     borderRadius: 50,
     padding: 8,
+    marginLeft: 8,
+  },
+
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#001F54',
   },
 
   header: {
