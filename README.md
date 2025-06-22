@@ -73,9 +73,9 @@ Cada equipamento pode ter manutenções registradas com:
 
 * Manutenção realizada
 
-* Nome e cargo do técnico
+* Horário de finalização
 
-* Horário de início/fim
+* Nome e cargo do técnico
 
 Esses registros também funcionam com sincronização offline/online e são vinculados ao usuário autenticado.
 
@@ -200,7 +200,7 @@ Uilians Cardoso, supervisor de Desenvolvimento de Automação. e Posta em Marcha
 
 Este projeto foi desenvolvido como avaliação final da disciplina de projeto integrador de desenvolvimento mobile dos cursos de Engenharia de Software e Engenharia da Computação na UniSATC.
 
-**Integrantes**
+**Integrantes:**
 
 * nome1
 * nome2
