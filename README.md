@@ -35,7 +35,7 @@ A finalidade é que, além de manter a segurança, facilite a manutenção de eq
 
 O acesso é feito via login com autenticação do Firebase, garantindo segurança e personalização de acordo com o cargo e permissões do usuário.
 
-[tela de login]
+![Tela de Login](assets/login_tela.png)
 
 ### 🏭 Áreas da Empresa
 
@@ -49,7 +49,7 @@ Após o login, o usuário visualiza as áreas operacionais da empresa. Cada áre
 
 Essa segmentação facilita o gerenciamento por setor.
 
-[tela de áreas]
+![Tela de Áreas](assets/area_tela.png)
 
 ### 🔩 Equipamentos
 
@@ -65,7 +65,7 @@ Dentro de cada área, é possível visualizar os equipamentos cadastrados, com i
 
 Os dados ficam disponíveis mesmo offline, graças ao cache local. Novos cadastros feitos offline são sincronizados automaticamente com o Firebase quando o dispositivo voltar a ter conexão.
 
-[tela de equipamentos]
+![Tela de Equpamentos](assets/equipamento_tela.png)
 
 ### 📑 Registros de Manutenção
 
@@ -79,7 +79,7 @@ Cada equipamento pode ter manutenções registradas com:
 
 Esses registros também funcionam com sincronização offline/online e são vinculados ao usuário autenticado.
 
-[tela de registro]
+![Tela de Registro](assets/registro_tela.png)
 
 ### 🔧 Tela de Manutenção
 
@@ -93,7 +93,7 @@ Ao iniciar uma manutenção é possivel:
 
 * Ter acesso aos problemas do motor atraves de alarmes e avisos
 
-[tela de manutenção]
+![Tela de Manutenção](assets/manutenção_tela.png)
 
 ### 📷 Leitura de QR Code
 
