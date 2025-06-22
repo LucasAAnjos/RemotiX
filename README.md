@@ -49,7 +49,7 @@ Após o login, o usuário visualiza as áreas operacionais da empresa. Cada áre
 
 Essa segmentação facilita o gerenciamento por setor.
 
-![Tela de Áreas](assets/area_tela.png)
+<img src="assets/area_tela.png" width="300"/>
 
 ### 🔩 Equipamentos
 
@@ -65,7 +65,7 @@ Dentro de cada área, é possível visualizar os equipamentos cadastrados, com i
 
 Os dados ficam disponíveis mesmo offline, graças ao cache local. Novos cadastros feitos offline são sincronizados automaticamente com o Firebase quando o dispositivo voltar a ter conexão.
 
-![Tela de Equpamentos](assets/equipamento_tela.png)
+<img src="assets/equipamento_tela.png" width="300"/>
 
 ### 📑 Registros de Manutenção
 
@@ -79,7 +79,7 @@ Cada equipamento pode ter manutenções registradas com:
 
 Esses registros também funcionam com sincronização offline/online e são vinculados ao usuário autenticado.
 
-![Tela de Registro](assets/registro_tela.png)
+<img src="assets/registro_tela.png" width="300"/>
 
 ### 🔧 Tela de Manutenção
 
@@ -93,7 +93,7 @@ Ao iniciar uma manutenção é possivel:
 
 * Ter acesso aos problemas do motor atraves de alarmes e avisos
 
-![Tela de Manutenção](assets/manutenção_tela.png)
+<img src="assets/manutenção_tela.png" width="300"/>
 
 ### 📷 Leitura de QR Code
 
