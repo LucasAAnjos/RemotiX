@@ -35,7 +35,7 @@ A finalidade é que, além de manter a segurança, facilite a manutenção de eq
 
 O acesso é feito via login com autenticação do Firebase, garantindo segurança e personalização de acordo com o cargo e permissões do usuário.
 
-![Tela de Login](assets/login_tela.png)
+<img src="assets/login_tela.png" width="300"/>
 
 ### 🏭 Áreas da Empresa
 
