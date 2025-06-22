@@ -73,7 +73,7 @@ Cada equipamento pode ter manutenções registradas com:
 
 * Manutenção realizada
 
-* Horário de finalização
+* Data de finalização
 
 * Nome e cargo do técnico
 
