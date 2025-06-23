@@ -12,7 +12,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as MediaLibrary from 'expo-media-library';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDownloadedFile, saveDownloadedFile } from '../src/storage/localStorage';
 import {
   collection,
   addDoc,
@@ -30,6 +30,7 @@ const EquipamentFiles = ({ route }) => {
   const [plantId, setPlantId] = useState(null);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState({});
 
   useEffect(() => {
     (async () => {
@@ -61,10 +62,13 @@ const EquipamentFiles = ({ route }) => {
       const q = query(filesRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
 
-      const fetched = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const fetched = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const data = doc.data();
+          const isDownloaded = !!(await getDownloadedFile(data.name, data.url));
+          return { id: doc.id, ...data, isDownloaded };
+        })
+      );
 
       setFiles(fetched);
     } catch (error) {
@@ -138,24 +142,7 @@ const EquipamentFiles = ({ route }) => {
     }
   };
 
-  const saveDownloadedFile = async (fileName, fileUrl, localUri) => {
-    const data = { url: fileUrl, uri: localUri };
-    await AsyncStorage.setItem(`downloadedFile:${fileName}`, JSON.stringify(data));
-  };
-
-  const getDownloadedFile = async (fileName, fileUrl) => {
-    const value = await AsyncStorage.getItem(`downloadedFile:${fileName}`);
-    if (value) {
-      const data = JSON.parse(value);
-      if (data.url === fileUrl) {
-        const fileInfo = await FileSystem.getInfoAsync(data.uri);
-        if (fileInfo.exists) return data.uri;
-      }
-    }
-    return null;
-  };
-
-  const handleDownload = async (file) => {
+  const handleOpenOrDownload = async (file) => {
     try {
       const { granted } = await MediaLibrary.requestPermissionsAsync();
       if (!granted) {
@@ -171,6 +158,7 @@ const EquipamentFiles = ({ route }) => {
         const downloaded = await FileSystem.downloadAsync(file.url, uri);
         localUri = downloaded.uri;
         await saveDownloadedFile(file.name, file.url, localUri);
+        file.isDownloaded = true;
       }
 
       const asset = await MediaLibrary.createAssetAsync(localUri);
@@ -189,16 +177,18 @@ const EquipamentFiles = ({ route }) => {
     }
   };
 
-  const renderFileCard = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.name}</Text>
-      <Text style={styles.cardInfo}>Tamanho: {(item.size / 1024).toFixed(1)} KB</Text>
-      <Text style={styles.cardInfo}>Tipo: {item.mimeType || 'Desconhecido'}</Text>
-      <TouchableOpacity style={styles.downloadBtn} onPress={() => handleDownload(item)}>
-        <Text style={styles.downloadText}>Baixar</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderFileCard = ({ item }) => {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+        <Text style={styles.cardInfo}>Tamanho: {(item.size / 1024).toFixed(1)} KB</Text>
+        <Text style={styles.cardInfo}>Tipo: {item.mimeType || 'Desconhecido'}</Text>
+        <TouchableOpacity style={styles.downloadBtn} onPress={() => handleOpenOrDownload(item)}>
+          <Text style={styles.downloadText}>{item.isDownloaded ? 'Abrir' : 'Baixar'}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>

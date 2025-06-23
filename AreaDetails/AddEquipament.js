@@ -17,12 +17,16 @@ import { addEquipamentToFirestore } from '../services/firestoreService';
 export default function AddEquipament() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { areaId, areaName } = route.params || {};
+  const { areaId } = route.params || {};
 
   const [plantId, setPlantId] = useState(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [driveType, setDriveType] = useState('IO');
+  const [serialNumber, setSerialNumber] = useState('');
+  const [ip, setIp] = useState('');
+  const [inputSignal, setInputSignal] = useState('');
+  const [outputSignal, setOutputSignal] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -33,17 +37,9 @@ export default function AddEquipament() {
     fetchPlantId();
   }, []);
 
-  const handleSave = async () => {
+ const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Erro', 'Por favor, informe o nome do equipamento.');
-      return;
-    }
-    if (!plantId) {
-      Alert.alert('Erro', 'Planta não encontrada.');
-      return;
-    }
-    if (!areaId) {
-      Alert.alert('Erro', 'Área não informada.');
       return;
     }
 
@@ -53,22 +49,30 @@ export default function AddEquipament() {
       name: name.trim(),
       description: description.trim(),
       driveType,
+      serialNumber,
       active: true,
       maintenanceCount: 0,
-      serialNumber: '',
     };
+
+    if (driveType === 'Profinet') {
+      newEquipment.ip = ip.trim();
+    } else if (driveType === 'IO') {
+      newEquipment.inputSignal = inputSignal.trim();
+      newEquipment.outputSignal = outputSignal.trim();
+    }
 
     try {
       await addEquipamentToFirestore(plantId, areaId, newEquipment);
       Alert.alert('Sucesso', 'Equipamento adicionado com sucesso!');
-      navigation.goBack();
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar o equipamento.');
-      console.error(error);
+      console.warn('Equipamento salvo offline, será sincronizado quando online.');
+      Alert.alert('Salvo offline', 'O equipamento será sincronizado quando estiver online.');
     } finally {
-    setIsSaving(false);
-   }
-};
+      setIsSaving(false);
+      navigation.goBack(); 
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -92,6 +96,15 @@ export default function AddEquipament() {
         editable={!isSaving}
       />
 
+      <Text style={styles.label}>Número de Série</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Número de série"
+        value={serialNumber}
+        onChangeText={setSerialNumber}
+        editable={!isSaving}
+      />
+
       <Text style={styles.label}>Tipo de Acionamento</Text>
       <View style={styles.pickerWrapper}>
         <Picker
@@ -106,6 +119,41 @@ export default function AddEquipament() {
           <Picker.Item label="CANopen" value="CANopen" />
         </Picker>
       </View>
+
+      {driveType === 'Profinet' && (
+        <>
+          <Text style={styles.label}>Endereço IP</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: 192.168.0.10"
+            value={ip}
+            onChangeText={setIp}
+            editable={!isSaving}
+          />
+        </>
+      )}
+
+      {driveType === 'IO' && (
+        <>
+          <Text style={styles.label}>Endereço de Entrada</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: %I0.0"
+            value={inputSignal}
+            onChangeText={setInputSignal}
+            editable={!isSaving}
+          />
+
+          <Text style={styles.label}>Endereço de Saída</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: %Q0.0"
+            value={outputSignal}
+            onChangeText={setOutputSignal}
+            editable={!isSaving}
+          />
+        </>
+      )}
 
       <TouchableOpacity
         style={[styles.button, isSaving && { opacity: 0.6 }]}

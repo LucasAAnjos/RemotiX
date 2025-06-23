@@ -14,6 +14,7 @@ import EquipamentFiles from './Equipament/EquipamentFiles';
 import MotorControl from './Equipament/MotorControl';
 import MaintenanceRegisterScreen from './Equipament/MaintenanceRegisterScreen';
 import QrScanner from './Equipament/QrScanner';
+import EditEquipament from './Equipament/EditEquipament';
 import { firebaseApp } from './services/firebaseConfig';
 
 const Stack = createNativeStackNavigator();
@@ -34,6 +35,7 @@ export default function App() {
           <Stack.Screen name="EquipamentDetail" component={EquipamentDetail} options={{title: 'Equipamento'}} />
           <Stack.Screen name="MotorControl" component={MotorControl} options={{title: 'Controle'}} />
           <Stack.Screen name="EquipamentFiles" component={EquipamentFiles} options={{title: 'Arquivos'}} />
+          <Stack.Screen name="EditEquipament" component={EditEquipament} options={{title: 'Editar Equipamento'}} />
           <Stack.Screen name="MaintenanceRegisterScreen" component={MaintenanceRegisterScreen} options={{title: 'Registrar Manutenção'}} />
           <Stack.Screen name="QrScanner" component={QrScanner} options={{title: 'Scanear Equipamento'}} />
         </Stack.Navigator>

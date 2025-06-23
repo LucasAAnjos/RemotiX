@@ -11,11 +11,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../services/firebaseConfig';
-import { savePlantId } from '../src/storage/localStorage';
-import { getDoc, doc } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { fetchAndStoreUserData } from '../services/firestoreService';
+import { validateForm } from '../Utils/ValidateLogin'; 
 
 const LoginForm = () => {
   const navigation = useNavigation();
@@ -37,49 +35,24 @@ const LoginForm = () => {
     });
 
     return unsubscribe;
-  }, []);
-
-  const isValidEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
-
-  const validateForm = () => {
-    const errors = {};
-
-    if (!email.trim()) {
-      errors.email = 'E-mail é obrigatório';
-    } else if (!isValidEmail(email)) {
-      errors.email = 'Formato de e-mail inválido';
-    }
-
-    if (!password.trim()) {
-      errors.password = 'Senha é obrigatória';
-    } else if (password.length < 6) {
-      errors.password = 'Senha deve ter pelo menos 6 caracteres';
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  }, [navigation]);
 
   const handleLogin = async () => {
     setError('');
-    if (!validateForm()) return;
+
+    const errors = validateForm(email, password);
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) return;
 
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       const user = auth.currentUser;
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      const plantId = userDoc.exists() ? userDoc.data().plantID : null;
-      await savePlantId(plantId);
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        await AsyncStorage.setItem('userRole', userData.role || '');
-        await AsyncStorage.setItem('userName', userData.name || '');
+      if (user) {
+        await fetchAndStoreUserData(user.uid);
       }
-     } catch (err) {
+    } catch (err) {
       console.error(err);
       let message = 'Erro ao fazer login. Verifique suas credenciais.';
       if (err.code === 'auth/user-not-found') message = 'Usuário não encontrado.';
@@ -88,6 +61,7 @@ const LoginForm = () => {
       else if (err.code === 'auth/too-many-requests') message = 'Muitas tentativas. Tente novamente mais tarde.';
 
       setError(message);
+      Alert.alert('Erro de Login', message);
     } finally {
       setIsLoading(false);
     }
@@ -107,8 +81,10 @@ const LoginForm = () => {
           value={email}
           onChangeText={setEmail}
           editable={!isLoading}
-          keyboardType="email-address"
           autoCapitalize="none"
+          autoCorrect={false}
+          textContentType="emailAddress"
+          autoComplete="email"
         />
         {validationErrors.email && (
           <Text style={styles.errorText}>{validationErrors.email}</Text>

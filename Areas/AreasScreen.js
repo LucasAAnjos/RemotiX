@@ -1,24 +1,16 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  RefreshControl,
-} from 'react-native';
+import React, { useState, useCallback, useLayoutEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { MaterialIcons, Entypo, Feather } from '@expo/vector-icons';
+import { MaterialIcons, Feather } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
-import { fetchAreasFromFirestore } from '../services/firestoreService';
-
 import { auth } from '../services/firebaseConfig';
 import {
   getPlantId,
   saveAreasToStorage,
   getAreasFromStorage,
+  getUserRole,
 } from '../src/storage/localStorage';
+import { fetchAreasFromFirestore } from '../services/firestoreService';
 
 export default function Areas() {
   const navigation = useNavigation();
@@ -26,25 +18,66 @@ export default function Areas() {
   const [areas, setAreas] = useState([]);
   const [isOnline, setIsOnline] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{ marginRight: 16 }}
+          accessibilityLabel="Logout"
+        >
+          <Feather name="log-out" size={24} color="#001F54" />
+        </TouchableOpacity>
+      ),
+      headerLeft: null,
+      title: 'Áreas',
+      headerTitleStyle: { color: '#001F54', fontWeight: 'bold', fontSize: 22 },
+    });
+  }, [navigation, userRole]);
 
   const fetchData = async (forceOnline = false) => {
     const id = await getPlantId();
     setPlantId(id);
-
     if (!id) return;
+
+    const role = await getUserRole();
+    setUserRole(role);
 
     try {
       const loadedAreas = await fetchAreasFromFirestore(id);
-      setAreas(loadedAreas);
-      await saveAreasToStorage(loadedAreas);
+
+      if (!loadedAreas || loadedAreas.length === 0) {
+        console.warn('Firestore retornou lista vazia, tentando cache local...');
+        const cached = await getAreasFromStorage();
+        if (cached && cached.length > 0) {
+          setAreas(cached);
+          setIsOnline(false);
+          return;
+        }
+      }
+
+      const areasWithCounts = loadedAreas.map((area) => {
+        const equipamentos = Array.isArray(area.equipments) ? area.equipments : [];
+        const ativos = equipamentos.filter((eq) => eq.status === 'ativo').length;
+        const manutencao = equipamentos.filter((eq) => eq.status === 'em_manutencao').length;
+
+        return {
+          ...area,
+          activeAssets: ativos,
+          maintenanceAssets: manutencao,
+        };
+      });
+
+      setAreas(areasWithCounts);
+      await saveAreasToStorage(areasWithCounts);
       setIsOnline(true);
     } catch (err) {
-      console.warn('Sem conexão. Carregando cache...');
-      if (!forceOnline) {
-        const cached = await getAreasFromStorage();
-        setAreas(cached);
-        setIsOnline(false);
-      }
+      console.warn('Erro ao buscar online. Tentando cache...');
+      const cached = await getAreasFromStorage();
+      setAreas(cached || []);
+      setIsOnline(false);
     }
   };
 
@@ -65,29 +98,29 @@ export default function Areas() {
   };
 
   const handleAddSector = () => {
-    navigation.navigate('AddSector');
+    if (userRole === 'pcm') {
+      navigation.navigate('AddSector');
+    } else {
+      Alert.alert('Permissão Negada', 'Você não tem permissão para adicionar setores.');
+    }
   };
 
-  const handleLogout = async () => {
+  async function handleLogout() {
     await signOut(auth);
     navigation.reset({
       index: 0,
       routes: [{ name: 'Login' }],
     });
-  };
+  }
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.areaName}>{item.name}</Text>
-          <Text style={styles.textGray}>{item.totalAssets ?? 0} ativos totais</Text>
           <Text style={styles.textGreen}>{item.activeAssets ?? 0} ativos</Text>
-          <Text style={styles.textGray}>{item.registeredItems ?? 0} itens cadastrados</Text>
+          <Text style={styles.textBlue}>{item.maintenanceAssets ?? 0} em manutenção</Text>
         </View>
-        <TouchableOpacity onPress={() => Alert.alert('Ação', 'Excluir Setor')}>
-          <Entypo name="dots-three-vertical" size={20} color="gray" />
-        </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.button} onPress={() => handleAreaClick(item)}>
         <Text style={styles.buttonText}>Acessar Área</Text>
@@ -97,37 +130,11 @@ export default function Areas() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <Text style={styles.title}>Áreas</Text>
 
-        <View style={styles.topRightIcons}>
-          <TouchableOpacity onPress={() => navigation.navigate('QrScanner')} style={styles.iconButton}>
-            <Feather name="camera" size={22} color="#001F54" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
-            <Feather name="log-out" size={22} color="#001F54" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddSector}>
-            <MaterialIcons name="add" size={20} color="white" />
-            <Text style={styles.addButtonText}>Adicionar setor</Text>
-          </TouchableOpacity>
-
-          <Text style={isOnline ? styles.syncStatusOnline : styles.syncStatusOffline}>
-            {isOnline ? '🟢 Dados online' : '🟡 Dados do cache'}
-          </Text>
-        </View>
-
-        <View style={{ marginTop: 10, alignItems: 'flex-start' }}>
-          <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-            <Feather name="refresh-ccw" size={20} color="#001F54" />
-          </TouchableOpacity>
-        </View>
+      <View style={styles.syncContainer}>
+        <Text style={isOnline ? styles.syncStatusOnline : styles.syncStatusOffline}>
+          {isOnline ? '🟢 Dados online' : '🟡 Dados do cache'}
+        </Text>
       </View>
 
       <FlatList
@@ -136,11 +143,33 @@ export default function Areas() {
         renderItem={renderItem}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        contentContainerStyle={{ paddingBottom: 140 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       />
+
+      <TouchableOpacity
+        style={[
+          styles.fabRound,
+          userRole !== 'pcm' && styles.fabRoundDisabled,
+        ]}
+        onPress={handleAddSector}
+        activeOpacity={userRole === 'pcm' ? 0.7 : 1}
+      >
+        <MaterialIcons
+          name="add"
+          size={28}
+          color={userRole === 'pcm' ? '#fff' : '#888'}
+        />
+      </TouchableOpacity>
+
+      {/* Botão câmera flutuante acima do adicionar */}
+      <TouchableOpacity
+        style={styles.fabCamera}
+        onPress={() => navigation.navigate('QrScanner')}
+      >
+        <Feather name="camera" size={24} color="#fff" />
+      </TouchableOpacity>
+
     </View>
   );
 }
@@ -148,56 +177,10 @@ export default function Areas() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F4F8', padding: 16 },
 
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 8,
-  },
-
-  topRightIcons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-
-  iconButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#001F54',
-    borderRadius: 50,
-    padding: 8,
-    marginLeft: 8,
-  },
-
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#001F54',
-  },
-
-  header: {
-    marginBottom: 16,
-  },
-
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#00C853',
-    padding: 10,
-    borderRadius: 8,
-  },
-
-  addButtonText: {
-    color: 'white',
-    marginLeft: 6,
-    fontWeight: 'bold',
+  syncContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 8,
+    paddingHorizontal: 4,
   },
 
   syncStatusOnline: {
@@ -210,16 +193,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#d4a100',
     fontWeight: '600',
-  },
-
-  refreshButton: {
-    marginTop: 10,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#001F54',
-    borderRadius: 50,
-    padding: 8,
-    alignSelf: 'flex-start',
   },
 
   card: {
@@ -243,14 +216,15 @@ const styles = StyleSheet.create({
     color: '#001F54',
   },
 
-  textGray: {
-    fontSize: 12,
-    color: 'gray',
-  },
-
   textGreen: {
     fontSize: 12,
     color: '#00C853',
+    fontWeight: '600',
+  },
+
+  textBlue: {
+    fontSize: 12,
+    color: '#007bff',
     fontWeight: '600',
   },
 
@@ -264,5 +238,43 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+
+  fabRound: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    backgroundColor: '#00C853',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+  },
+
+  fabRoundDisabled: {
+    backgroundColor: '#888',
+  },
+
+  fabCamera: {
+    position: 'absolute',
+    bottom: 94,
+    right: 24,
+    backgroundColor: '#001F54',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
   },
 });

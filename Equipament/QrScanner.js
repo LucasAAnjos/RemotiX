@@ -23,7 +23,6 @@ export default function QrScanner() {
 
   const handleBarCodeScanned = ({ data }) => {
     setScanned(true);
-    Alert.alert('Conteúdo escaneado:', data);
     try {
       const parsed = JSON.parse(data);
       if (parsed.areaId && parsed.equipamentId && parsed.equipamentName) {
@@ -39,7 +38,7 @@ export default function QrScanner() {
   return (
     <View style={styles.container}>
       <CameraView
-        onBarCodeScanned={(data) => {handleBarCodeScanned(data)}}
+        onBarcodeScanned={(data) => {handleBarCodeScanned(data)}}
         style={StyleSheet.absoluteFillObject}
         ratio="16:9"
       />
