@@ -121,20 +121,9 @@ cd android
 
 ---
 
-## 🔒 Variáveis Sensíveis
-
-Adicione `.env` para chaves de API — **não publique credenciais**.
-
----
 
 ## 🧪 Testes
 
 Ainda não há testes automatizados. Recomenda-se Jest + React Native Testing Library.
-
----
-
-
-## 🤝 Contribuindo
-
 
 ---
