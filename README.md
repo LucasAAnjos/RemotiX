@@ -1,50 +1,138 @@
-# Welcome to your Expo app 👋
+# RemotiX
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## 📱 Descrição
 
-## Get started
+**RemotiX** é um aplicativo de manutenção de equipamentos com funcionalidades para:
+- Gerenciar áreas, setores e equipamentos.
+- Simular e controlar motores.
+- Registrar manutenções.
+- Escanear QR Codes.
+- Autenticar usuários.
+- Integrar com Firebase.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 📱 Responsáveis
+**Lista dos responsáveis pelo projeto**
+- Kauan Fontanela
+- Lucas Adriano
+- Rodrigo Margotti
+- Geovane
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 📁 Estrutura de Pastas
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+RemotiX-MaintenanceDev/
+│
+├── App.js                 # Ponto de entrada da aplicação
+├── index.js               # Registro do app
+├── app.json               # Configuração do app (Expo)
+├── eas.json               # Configuração do EAS Build (Expo)
+├── metro.config.js        # Configuração do bundler Metro
+├── package.json           # Dependências e scripts do projeto
+├── package-lock.json      # Lockfile do npm
+│
+├── android/               # Projeto nativo Android
+│   ├── build.gradle
+│   ├── gradlew
+│   ├── settings.gradle
+│   ├── gradle/
+│   └── app/
+│       ├── build.gradle
+│       ├── proguard-rules.pro
+│       └── src/
+│           ├── main/
+│           │   ├── AndroidManifest.xml
+│           │   ├── java/com/lucasaanjos/remotix/
+│           │   │   ├── MainActivity.kt
+│           │   │   └── MainApplication.kt
+│           │   ├── res/
+│           │   │   ├── drawable/
+│           │   │   ├── mipmap-*/ (ícones)
+│           │   │   ├── values/ (strings, temas)
+│           │   │   └── ...
+│           └── ...
+│
+├── Areas/                 # Telas e lógica de áreas/setores
+├── AreaDetails/           # Cadastro e detalhes de equipamentos por área
+├── Equipament/            # Funcionalidades de equipamentos
+├── Drivers/               # Drivers de simulação e controle de motores
+├── Login/                 # Autenticação e formulário de login
+├── Models/                # Modelos de dados
+├── Utils/                 # Funções utilitárias
+├── ValidaçõesTeste/       # Scripts de teste e validações de entrada
+├── services/              # Integração com Firebase/Firestore
+├── src/storage/           # Armazenamento local
+├── nodejs-assets/         # Backend Node.js embarcado
+└── assets/                # Ícones e imagens
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## ⚙️ Tecnologias
 
-To learn more about developing your project with Expo, look at the following resources:
+- React Native
+- Node.js (local)
+- Firebase (Auth + Firestore)
+- Android nativo
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## 🚀 Instalação
 
-Join our community of developers creating universal apps.
+**Pré-requisitos:** Node.js 14+, npm ou yarn, Expo CLI ou React Native CLI, Android Studio.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+git clone https://github.com/SEU_USUARIO/RemotiX.git
+cd RemotiX-MaintenanceDev
+npm install
+```
+
+Configure o Firebase em `services/firebaseConfig.js`:
+
+```js
+export const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_DOMINIO.firebaseapp.com",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_BUCKET.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
+};
+```
+
+Para rodar:
+
+```bash
+npx react-native run-android
+# ou
+npx expo start
+```
+
+Para build Android:
+
+```bash
+cd android
+./gradlew assembleRelease
+```
+
+---
+
+## ✅ Scripts Principais
+
+- **App.js** — Entrada da aplicação.
+- **index.js** — Registro do app.
+- **metro.config.js** — Configuração do bundler Metro.
+- **eas.json** — Configuração Expo EAS.
+- **nodejs-assets/nodejs-project/** — Scripts Node.js embarcados.
+
+---
+
+
+## 🧪 Testes
+
+Ainda não há testes automatizados. Recomenda-se Jest + React Native Testing Library.
+
+---
