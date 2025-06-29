@@ -49,5 +49,11 @@
 
 ---
 
+## Considerações Finais
+
+- **Há 3 arquivos de vídeos, "Vídeo 1, Vídeo 2 e ClienteAGPR5" Onde os dois primeiros são referente ao funcionamento do aplicativo e estão citados na apresentação e o último referente a aprovação do cliente mediante ao projeto para validação do mesmo.**
+
+- **A apresentação também está inclusa na documentação como Apresentação_RemotiX onde há um arquivo em .pdf**
+
 > Projeto desenvolvido com fins acadêmicos e industriais, focado em aumentar a eficiência e rastreabilidade da manutenção de equipamentos em ambientes produtivos.
 
